@@ -6,27 +6,55 @@ resource "aws_vpc" "main" {
 ## public subnet
  resource "aws_subnet" "public_subnet" {
    vpc_id            = aws_vpc.main.id
+
+   for_each          = var.public_subnet
+   cidr_block        = each.value["cidr_block"]
+   availability_zone = each.value["availability_zone"]
    tags = merge(
      var.tags,
      { Name = "${var.env}-${each.value["name"]}" }
    )
 
-   for_each          = var.public_subnet
-   cidr_block        = each.value["cidr_block"]
-   availability_zone = each.value["availability_zone"]
-
  }
 
-## private subnet
-resource "aws_subnet" "private_subnet" {
-  vpc_id            = aws_vpc.main.id
+## public route table
+
+resource "aws_route_table" "public-route-table" {
+  vpc_id = aws_vpc.main.id
+
+
+  for_each          = var.public_subnet
   tags = merge(
     var.tags,
     { Name = "${var.env}-${each.value["name"]}" }
   )
 
+}
+
+## private subnet
+resource "aws_subnet" "private_subnet" {
+  vpc_id            = aws_vpc.main.id
+
   for_each          = var.private_subnet
   cidr_block        = each.value["cidr_block"]
   availability_zone = each.value["availability_zone"]
+  tags = merge(
+    var.tags,
+    { Name = "${var.env}-${each.value["name"]}" }
+  )
+
+}
+
+## private route table
+
+resource "aws_route_table" "private-route-table" {
+  vpc_id = aws_vpc.main.id
+
+
+  for_each          = var.private_subnet
+  tags = merge(
+    var.tags,
+    { Name = "${var.env}-${each.value["name"]}" }
+  )
 
 }
