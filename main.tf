@@ -65,3 +65,10 @@ resource "aws_route_table" "private-route-table" {
   )
 
 }
+
+resource "aws_route_table_association" "private-association" {
+  for_each       = var.private_subnet
+  subnet_id      = lookup(lookup(aws_subnet.private_subnet, each.value["name"], null ), "id", null )
+  #subnet_id     = aws_subnet.public_subnet[each.value["name"]].id
+  route_table_id = aws_route_table.private-route-table[each.value["name"]].id
+}
