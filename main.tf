@@ -4,14 +4,14 @@ resource "aws_vpc" "main" {
 }
 
 ## public subnet
- resource "aws_subnet" "public_subnets" {
+ resource "aws_subnet" "public_subnet" {
    vpc_id            = aws_vpc.main.id
    tags = merge(
      var.tags,
      { Name = "${var.env}-${each.value["name"]}" }
    )
 
-   for_each          = var.public_subnets
+   for_each          = var.public_subnet
    cidr_block        = each.value["cidr_block"]
    availability_zone = each.value["availability_zone"]
 
