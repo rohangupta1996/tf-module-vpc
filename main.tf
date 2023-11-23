@@ -31,11 +31,11 @@ resource "aws_route_table" "public-route-table" {
 
 }
 
-resource "aws_route_table_association" "public-association" {
-  for_each       = var.public_subnet
-  subnet_id      = aws_subnet.public_subnet[each.value["name"]].id
-  route_table_id = aws_route_table.[each.value["name"]].id
-}
+#resource "aws_route_table_association" "public-association" {
+#  for_each       = var.public_subnet
+#  subnet_id      = aws_subnet.public_subnet[each.value["name"]].id
+#  route_table_id = aws_route_table.[each.value["name"]].id
+#}
 
 ## private subnet
 resource "aws_subnet" "private_subnet" {
