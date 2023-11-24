@@ -17,10 +17,42 @@ resource "aws_vpc" "main" {
 
  }
 
+## Internet gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = merge(
+    var.tags,
+    { Name = "${var.env}-igw" }
+  )
+}
+
+## NAT gateway
+
+resource "aws_eip" "nat" {
+  for_each = var.public_subnet
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat-gateway" {
+  for_each = var.public_subnet
+  allocation_id = aws_eip.nat[each.value["name"]].id
+  subnet_id     = aws_subnet.public_subnet[each.value["name"]].id
+
+  tags = merge(
+    var.tags,
+    { Name = "${var.env}-${each.value["name"]}" }
+  )
+}
+
 ## public route table
 
 resource "aws_route_table" "public-route-table" {
   vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
 
 
   for_each          = var.public_subnet
@@ -57,6 +89,10 @@ resource "aws_subnet" "private_subnet" {
 resource "aws_route_table" "private-route-table" {
   vpc_id = aws_vpc.main.id
 
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.nat-gateway[each.value["availability_zone"]].id
+  }
 
   for_each          = var.private_subnet
   tags = merge(
@@ -72,3 +108,4 @@ resource "aws_route_table_association" "private-association" {
   #subnet_id     = aws_subnet.public_subnet[each.value["name"]].id
   route_table_id = aws_route_table.private-route-table[each.value["name"]].id
 }
+
